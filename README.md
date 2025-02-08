@@ -1,7 +1,8 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Mobile Friendly -->
+  <!-- Ensures proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sports Stock Market Simulator</title>
   <style>
@@ -30,7 +31,7 @@
       border-bottom: 2px solid #28a745;
       z-index: 100;
     }
-    /* Two ticker lines */
+    /* Two ticker lines at the top */
     #global-ticker, #extra-ticker {
       white-space: nowrap;
       overflow: hidden;
@@ -41,7 +42,6 @@
       padding-left: 100%;
       animation: ticker 15s linear infinite;
     }
-    /* You can adjust the animation-duration for extra speed */
     @keyframes ticker {
       0% { transform: translateX(0); }
       100% { transform: translateX(-100%); }
@@ -61,9 +61,9 @@
       cursor: pointer;
       box-shadow: 0 0 5px #28a745;
     }
-    /* ---------- Content & Page Sections ---------- */
+    /* ---------- Main Content & Page Sections ---------- */
     #content {
-      padding: 130px 20px 20px 20px; /* space for fixed header + tickers */
+      padding: 130px 20px 20px 20px; /* leave space for header and tickers */
     }
     .page { display: none; }
     .page.active { display: block; }
@@ -71,11 +71,13 @@
     #dashboard { text-align: center; }
     #dashboard h1 { font-size: 2em; margin-bottom: 10px; }
     #balance-display { font-size: 1.5em; margin-bottom: 10px; }
-    /* Portfolio Table */
+    /* Portfolio Table with high contrast */
     #portfolio-table {
       margin: 0 auto;
       border-collapse: collapse;
       width: 90%;
+      background-color: rgba(0,0,0,0.8);
+      color: #fff;
     }
     #portfolio-table th, #portfolio-table td {
       border: 1px solid #28a745;
@@ -113,6 +115,8 @@
     #stockMarket table {
       width: 100%;
       border-collapse: collapse;
+      background-color: rgba(0,0,0,0.8);
+      color: #fff;
     }
     #stockMarket th, #stockMarket td {
       border: 1px solid #28a745;
@@ -129,6 +133,7 @@
       height: 300px;
       overflow-y: scroll;
       background: rgba(0,0,0,0.8);
+      color: #fff;
     }
     .news-item { border-bottom: 1px solid #28a745; padding: 5px 0; font-size: 1em; }
     /* ---------- Instructions Page ---------- */
@@ -175,16 +180,24 @@
       border: 2px solid #28a745;
       box-shadow: 0 0 10px #28a745;
     }
+    /* ---------- Responsive Styles for Mobile ---------- */
+    @media (max-width: 600px) {
+      body { font-size: 14px; }
+      #nav button { padding: 6px 12px; font-size: 0.9em; }
+      #portfolio-table, #stockMarket table { font-size: 0.8em; }
+      #live-games-container, .live-game-event { width: 90%; }
+      #global-ticker, #extra-ticker, #bottom-ticker { font-size: 0.9em; }
+    }
   </style>
 </head>
 <body>
-  <!-- HEADER: Top Tickers & Navigation -->
+  <!-- HEADER: Tickers & Navigation -->
   <div id="header">
     <div id="global-ticker">
       <p id="ticker-text"></p>
     </div>
     <div id="extra-ticker">
-      <p id="ticker-text-extra"></p>
+      <p id="ticker-text-extra">Welcome to the Crazy Sports Market!</p>
     </div>
     <div id="nav">
       <button onclick="showSection('dashboard')">Dashboard</button>
@@ -253,9 +266,9 @@
       <ul>
         <li>You start with <strong>50,000 USD</strong>.</li>
         <li><strong>Dashboard:</strong> View your balance and portfolio (buy, sell, and track your sports team stocks).</li>
-        <li><strong>Live Games:</strong> Bet on multiple simulated live games. If you win a bet, your wager doubles; if you lose, it’s lost. Each game can be bet on only once per session.</li>
-        <li><strong>Stock Market:</strong> Buy and sell stocks representing USA sports teams (NFL, NBA, NHL, MLB, MLS). Their prices fluctuate randomly.</li>
-        <li><strong>News:</strong> Stay updated with fast‑paced, fake headlines.</li>
+        <li><strong>Live Games:</strong> Bet on multiple simulated live games. If you win a bet, your wager doubles; if you lose, it’s lost. (Each game can be bet on only once per session.)</li>
+        <li><strong>Stock Market:</strong> Buy and sell stocks representing USA sports teams (NFL, NBA, NHL, MLB, MLS). Prices fluctuate randomly.</li>
+        <li><strong>News:</strong> Stay updated with fast‑paced, wild headlines.</li>
         <li><strong>Cash Out:</strong> When you’re ready, cash out from your Dashboard to celebrate your winnings (this resets the game).</li>
       </ul>
       <p>Good luck, make smart trades, and enjoy the neon‑fueled action!</p>
@@ -283,13 +296,13 @@
       let stocks = [];     // Array of stock objects
       let liveGames = [];  // Array of live game objects
 
-      // Team name arrays (used for stocks and live games)
+      /***** TEAM ARRAYS *****/
       const nflTeamNames = ["Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills", "Carolina Panthers", "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns", "Dallas Cowboys", "Denver Broncos", "Detroit Lions", "Green Bay Packers", "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars", "Kansas City Chiefs", "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins", "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants", "New York Jets", "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers", "Seattle Seahawks", "Tampa Bay Buccaneers", "Tennessee Titans", "Washington Commanders"];
       const nbaTeamNames = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets", "Chicago Bulls", "Cleveland Cavaliers", "Dallas Mavericks", "Denver Nuggets", "Detroit Pistons", "Golden State Warriors", "Houston Rockets", "Indiana Pacers", "Los Angeles Clippers", "Los Angeles Lakers", "Memphis Grizzlies", "Miami Heat", "Milwaukee Bucks", "Minnesota Timberwolves", "New Orleans Pelicans", "New York Knicks", "Oklahoma City Thunder", "Orlando Magic", "Philadelphia 76ers", "Phoenix Suns", "Portland Trail Blazers", "Sacramento Kings", "San Antonio Spurs", "Toronto Raptors", "Utah Jazz", "Washington Wizards"];
       const nhlTeamNames = ["Anaheim Ducks", "Arizona Coyotes", "Boston Bruins", "Buffalo Sabres", "Calgary Flames", "Carolina Hurricanes", "Chicago Blackhawks", "Colorado Avalanche", "Columbus Blue Jackets", "Dallas Stars", "Detroit Red Wings", "Edmonton Oilers", "Florida Panthers", "Los Angeles Kings", "Minnesota Wild", "Montreal Canadiens", "Nashville Predators", "New Jersey Devils", "New York Islanders", "New York Rangers", "Ottawa Senators", "Philadelphia Flyers", "Pittsburgh Penguins", "San Jose Sharks", "Seattle Kraken", "St. Louis Blues", "Tampa Bay Lightning", "Toronto Maple Leafs", "Vancouver Canucks", "Vegas Golden Knights", "Washington Capitals", "Winnipeg Jets"];
       const mlbTeamNames = ["Arizona Diamondbacks", "Atlanta Braves", "Baltimore Orioles", "Boston Red Sox", "Chicago Cubs", "Chicago White Sox", "Cincinnati Reds", "Cleveland Guardians", "Colorado Rockies", "Detroit Tigers", "Houston Astros", "Kansas City Royals", "Los Angeles Angels", "Los Angeles Dodgers", "Miami Marlins", "Milwaukee Brewers", "Minnesota Twins", "New York Yankees", "New York Mets", "Oakland Athletics", "Philadelphia Phillies", "Pittsburgh Pirates", "San Diego Padres", "San Francisco Giants", "Seattle Mariners", "St. Louis Cardinals", "Tampa Bay Rays", "Texas Rangers", "Toronto Blue Jays", "Washington Nationals"];
       const mlsTeamNames = ["Atlanta United FC", "Austin FC", "CF Montréal", "Charlotte FC", "Chicago Fire FC", "FC Cincinnati", "Columbus Crew", "D.C. United", "FC Dallas", "Houston Dynamo", "Inter Miami CF", "LA Galaxy", "Los Angeles FC", "Minnesota United FC", "Nashville SC", "New England Revolution", "New York City FC", "New York Red Bulls", "Orlando City SC", "Philadelphia Union", "Portland Timbers", "Real Salt Lake", "San Jose Earthquakes", "Seattle Sounders FC", "Sporting Kansas City", "Vancouver Whitecaps FC"];
-      
+
       /***** USER DATA FUNCTIONS *****/
       function loadUserData() {
         balance = parseFloat(localStorage.getItem("balance"));
@@ -368,7 +381,6 @@
         }
         return symbol;
       }
-
       function generateStocks() {
         stocks = [];
         const addTeams = (teamArray, league) => {
@@ -412,7 +424,6 @@
           tbody.appendChild(row);
         });
       }
-
       function updateStockPrices() {
         stocks.forEach(stock => {
           stock.lastPrice = stock.price;
@@ -465,15 +476,13 @@
       window.sellStock = sellStock;
 
       /***** LIVE GAMES FUNCTIONS *****/
-      // We'll generate 3 live game events
       function generateLiveGames() {
         liveGames = [];
         for (let i = 0; i < 3; i++) {
           let teamA = nflTeamNames[Math.floor(Math.random() * nflTeamNames.length)];
           let teamB;
-          do {
-            teamB = nflTeamNames[Math.floor(Math.random() * nflTeamNames.length)];
-          } while (teamB === teamA);
+          do { teamB = nflTeamNames[Math.floor(Math.random() * nflTeamNames.length)]; }
+          while (teamB === teamA);
           let scoreA = Math.floor(Math.random() * 50);
           let scoreB = Math.floor(Math.random() * 50);
           liveGames.push({
@@ -487,7 +496,6 @@
           });
         }
       }
-
       function updateLiveGamesDisplay() {
         const container = document.getElementById("live-games-container");
         container.innerHTML = "";
@@ -504,7 +512,6 @@
           container.appendChild(gameDiv);
         });
       }
-
       function betOnLiveGame(index) {
         const input = document.getElementById("bet-" + index);
         const amount = parseFloat(input.value);
@@ -517,7 +524,6 @@
           return;
         }
         balance -= amount;
-        // 50% chance to win the bet
         const win = Math.random() < 0.5;
         if (win) {
           balance += amount * 2;
@@ -533,9 +539,7 @@
       }
       window.betOnLiveGame = betOnLiveGame;
 
-      /* =========================
-         NEWS PAGE FUNCTIONALITY
-      =========================== */
+      /***** NEWS FUNCTIONS *****/
       const newsHeadlines = [
         "LeBron James announces surprise retirement—then un-retires 10 minutes later!",
         "Patriots sign unknown kicker who can hit 80-yard field goals!",
@@ -637,13 +641,13 @@
         launchConfetti();
       }
       window.cashOut = cashOut;
-      
+
       function restartGame() {
         localStorage.clear();
         location.reload();
       }
       window.restartGame = restartGame;
-      
+
       function launchConfetti() {
         const container = document.getElementById("confetti-container");
         container.innerHTML = "";
@@ -682,23 +686,15 @@
       `;
       document.head.appendChild(confettiStyle);
 
-      /* =========================
-         INITIALIZE: Stocks & Live Games
-      ============================= */
-      generateStocks();
+      /***** INITIALIZE STOCKS & LIVE GAMES *****/
       updateStocksTable();
       updateDashboard();
       generateLiveGames();
       updateLiveGamesDisplay();
-
-      /* =========================
-         UPDATE STOCK PRICES PERIODICALLY
-      ============================= */
+      // Update stock prices every 3 seconds
       setInterval(updateStockPrices, 3000);
 
-      /* =========================
-         EXPOSE FUNCTIONS TO GLOBAL SCOPE
-      ============================= */
+      /***** EXPOSE FUNCTIONS TO GLOBAL SCOPE *****/
       window.buyStock = buyStock;
       window.sellStock = sellStock;
       window.betOnLiveGame = betOnLiveGame;
