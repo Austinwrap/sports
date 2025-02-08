@@ -1,8 +1,7 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <!-- Ensures proper scaling on mobile devices -->
+  <!-- Ensure proper scaling on mobile devices -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Sports Stock Market Simulator</title>
   <style>
@@ -31,7 +30,7 @@
       border-bottom: 2px solid #28a745;
       z-index: 100;
     }
-    /* Two ticker lines at the top */
+    /* Two ticker lines at the top; faster scrolling (7s) */
     #global-ticker, #extra-ticker {
       white-space: nowrap;
       overflow: hidden;
@@ -40,7 +39,7 @@
     #global-ticker p, #extra-ticker p {
       display: inline-block;
       padding-left: 100%;
-      animation: ticker 15s linear infinite;
+      animation: ticker 7s linear infinite;
     }
     @keyframes ticker {
       0% { transform: translateX(0); }
@@ -71,18 +70,21 @@
     #dashboard { text-align: center; }
     #dashboard h1 { font-size: 2em; margin-bottom: 10px; }
     #balance-display { font-size: 1.5em; margin-bottom: 10px; }
-    /* Portfolio Table with high contrast */
+    /* Portfolio Table with alternating row colors for clarity */
     #portfolio-table {
       margin: 0 auto;
       border-collapse: collapse;
       width: 90%;
-      background-color: rgba(0,0,0,0.8);
+      background-color: rgba(0, 0, 0, 0.8);
       color: #fff;
     }
     #portfolio-table th, #portfolio-table td {
       border: 1px solid #28a745;
       padding: 8px;
       text-align: center;
+    }
+    #portfolio-table tr:nth-child(even) {
+      background-color: rgba(255,255,255,0.1);
     }
     /* ---------- Live Games Styles ---------- */
     #liveGame { text-align: center; }
@@ -124,6 +126,10 @@
       text-align: center;
     }
     #stockMarket th { background-color: #333; }
+    /* Make the team name (2nd column) appear in contrasting yellow */
+    #stocks-body td:nth-child(2) {
+      color: #ffcc00;
+    }
     /* ---------- News Page Styles ---------- */
     #news { max-width: 800px; margin: 0 auto; }
     #news h1 { text-align: center; margin-bottom: 10px; }
@@ -136,7 +142,7 @@
       color: #fff;
     }
     .news-item { border-bottom: 1px solid #28a745; padding: 5px 0; font-size: 1em; }
-    /* ---------- Instructions Page ---------- */
+    /* ---------- Instructions Page Styles ---------- */
     #instructions { max-width: 800px; margin: 0 auto; text-align: left; line-height: 1.6; }
     /* ---------- Cash Out / Celebration Page ---------- */
     #cashOut { text-align: center; font-size: 1.5em; }
@@ -160,10 +166,11 @@
       overflow: hidden;
       z-index: 100;
     }
+    /* Faster bottom ticker: 5s duration */
     #bottom-ticker p {
       display: inline-block;
       padding-left: 100%;
-      animation: ticker 10s linear infinite;
+      animation: ticker 5s linear infinite;
     }
     /* ---------- Confetti Container ---------- */
     #confetti-container {
@@ -207,7 +214,7 @@
       <button onclick="showSection('instructions')">Instructions</button>
     </div>
   </div>
-
+  
   <!-- MAIN CONTENT AREA -->
   <div id="content">
     <!-- Dashboard Page -->
@@ -290,20 +297,20 @@
   
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      /***** GLOBAL VARIABLES *****/
+      // Global Variables
       let balance = 0;
-      let portfolio = {};  // { symbol: quantity }
-      let stocks = [];     // Array of stock objects
-      let liveGames = [];  // Array of live game objects
-
-      /***** TEAM ARRAYS *****/
+      let portfolio = {}; // { symbol: quantity }
+      let stocks = [];    // Array of stock objects
+      let liveGames = []; // Array of live game objects
+      
+      // TEAM ARRAYS
       const nflTeamNames = ["Arizona Cardinals", "Atlanta Falcons", "Baltimore Ravens", "Buffalo Bills", "Carolina Panthers", "Chicago Bears", "Cincinnati Bengals", "Cleveland Browns", "Dallas Cowboys", "Denver Broncos", "Detroit Lions", "Green Bay Packers", "Houston Texans", "Indianapolis Colts", "Jacksonville Jaguars", "Kansas City Chiefs", "Las Vegas Raiders", "Los Angeles Chargers", "Los Angeles Rams", "Miami Dolphins", "Minnesota Vikings", "New England Patriots", "New Orleans Saints", "New York Giants", "New York Jets", "Philadelphia Eagles", "Pittsburgh Steelers", "San Francisco 49ers", "Seattle Seahawks", "Tampa Bay Buccaneers", "Tennessee Titans", "Washington Commanders"];
       const nbaTeamNames = ["Atlanta Hawks", "Boston Celtics", "Brooklyn Nets", "Charlotte Hornets", "Chicago Bulls", "Cleveland Cavaliers", "Dallas Mavericks", "Denver Nuggets", "Detroit Pistons", "Golden State Warriors", "Houston Rockets", "Indiana Pacers", "Los Angeles Clippers", "Los Angeles Lakers", "Memphis Grizzlies", "Miami Heat", "Milwaukee Bucks", "Minnesota Timberwolves", "New Orleans Pelicans", "New York Knicks", "Oklahoma City Thunder", "Orlando Magic", "Philadelphia 76ers", "Phoenix Suns", "Portland Trail Blazers", "Sacramento Kings", "San Antonio Spurs", "Toronto Raptors", "Utah Jazz", "Washington Wizards"];
       const nhlTeamNames = ["Anaheim Ducks", "Arizona Coyotes", "Boston Bruins", "Buffalo Sabres", "Calgary Flames", "Carolina Hurricanes", "Chicago Blackhawks", "Colorado Avalanche", "Columbus Blue Jackets", "Dallas Stars", "Detroit Red Wings", "Edmonton Oilers", "Florida Panthers", "Los Angeles Kings", "Minnesota Wild", "Montreal Canadiens", "Nashville Predators", "New Jersey Devils", "New York Islanders", "New York Rangers", "Ottawa Senators", "Philadelphia Flyers", "Pittsburgh Penguins", "San Jose Sharks", "Seattle Kraken", "St. Louis Blues", "Tampa Bay Lightning", "Toronto Maple Leafs", "Vancouver Canucks", "Vegas Golden Knights", "Washington Capitals", "Winnipeg Jets"];
       const mlbTeamNames = ["Arizona Diamondbacks", "Atlanta Braves", "Baltimore Orioles", "Boston Red Sox", "Chicago Cubs", "Chicago White Sox", "Cincinnati Reds", "Cleveland Guardians", "Colorado Rockies", "Detroit Tigers", "Houston Astros", "Kansas City Royals", "Los Angeles Angels", "Los Angeles Dodgers", "Miami Marlins", "Milwaukee Brewers", "Minnesota Twins", "New York Yankees", "New York Mets", "Oakland Athletics", "Philadelphia Phillies", "Pittsburgh Pirates", "San Diego Padres", "San Francisco Giants", "Seattle Mariners", "St. Louis Cardinals", "Tampa Bay Rays", "Texas Rangers", "Toronto Blue Jays", "Washington Nationals"];
       const mlsTeamNames = ["Atlanta United FC", "Austin FC", "CF Montréal", "Charlotte FC", "Chicago Fire FC", "FC Cincinnati", "Columbus Crew", "D.C. United", "FC Dallas", "Houston Dynamo", "Inter Miami CF", "LA Galaxy", "Los Angeles FC", "Minnesota United FC", "Nashville SC", "New England Revolution", "New York City FC", "New York Red Bulls", "Orlando City SC", "Philadelphia Union", "Portland Timbers", "Real Salt Lake", "San Jose Earthquakes", "Seattle Sounders FC", "Sporting Kansas City", "Vancouver Whitecaps FC"];
-
-      /***** USER DATA FUNCTIONS *****/
+      
+      // USER DATA FUNCTIONS
       function loadUserData() {
         balance = parseFloat(localStorage.getItem("balance"));
         if (isNaN(balance)) { balance = 50000; }
@@ -315,8 +322,8 @@
         localStorage.setItem("portfolio", JSON.stringify(portfolio));
       }
       loadUserData();
-
-      /***** GLOBAL TICKERS *****/
+      
+      // GLOBAL TICKERS
       function updateGlobalTicker() {
         const tickerHTML = `<span style="color: red; font-family: Arial;">Balance: ${balance.toFixed(2)} USD</span> ` +
                            `<span style="color: orange; font-family: Courier New;">| Stocks Live |</span> ` +
@@ -326,7 +333,6 @@
       }
       updateGlobalTicker();
       setInterval(updateGlobalTicker, 5000);
-
       function updateBottomTicker() {
         let tickerStr = "";
         for (let i = 0; i < Math.min(20, stocks.length); i++) {
@@ -336,8 +342,8 @@
       }
       updateBottomTicker();
       setInterval(updateBottomTicker, 5000);
-
-      /***** DASHBOARD UPDATE *****/
+      
+      // DASHBOARD UPDATE
       function updateDashboard() {
         document.getElementById("balance-display").innerText = balance.toFixed(2);
         const tbody = document.getElementById("portfolio-body");
@@ -355,8 +361,8 @@
           tbody.appendChild(row);
         }
       }
-
-      /***** PAGE NAVIGATION *****/
+      
+      // PAGE NAVIGATION
       function showSection(sectionId) {
         const pages = document.getElementsByClassName("page");
         for (let i = 0; i < pages.length; i++) {
@@ -371,8 +377,8 @@
         }
       }
       window.showSection = showSection;
-
-      /***** STOCK MARKET FUNCTIONS *****/
+      
+      // STOCK MARKET FUNCTIONS
       function generateSymbol(teamName) {
         const words = teamName.split(" ");
         let symbol = words.map(word => word.charAt(0)).join("").toUpperCase();
@@ -406,7 +412,6 @@
         addTeams(mlsTeamNames, "MLS");
       }
       generateStocks();
-
       function updateStocksTable() {
         const tbody = document.getElementById("stocks-body");
         tbody.innerHTML = "";
@@ -438,7 +443,6 @@
         updateGlobalTicker();
       }
       setInterval(updateStockPrices, 3000);
-
       function buyStock(symbol) {
         let stock = stocks.find(s => s.symbol === symbol);
         let qty = parseInt(prompt("Enter quantity to buy:", "100"));
@@ -455,7 +459,6 @@
         updateGlobalTicker();
       }
       window.buyStock = buyStock;
-
       function sellStock(symbol) {
         let stock = stocks.find(s => s.symbol === symbol);
         let owned = portfolio[symbol] || 0;
@@ -474,7 +477,6 @@
         updateGlobalTicker();
       }
       window.sellStock = sellStock;
-
       /***** LIVE GAMES FUNCTIONS *****/
       function generateLiveGames() {
         liveGames = [];
@@ -538,7 +540,6 @@
         updateLiveGamesDisplay();
       }
       window.betOnLiveGame = betOnLiveGame;
-
       /***** NEWS FUNCTIONS *****/
       const newsHeadlines = [
         "LeBron James announces surprise retirement—then un-retires 10 minutes later!",
@@ -629,7 +630,7 @@
         }
       }
       setInterval(updateNews, 4000);
-
+      
       /***** CASH OUT & CELEBRATION *****/
       function cashOut() {
         const pages = document.getElementsByClassName("page");
@@ -641,13 +642,13 @@
         launchConfetti();
       }
       window.cashOut = cashOut;
-
+      
       function restartGame() {
         localStorage.clear();
         location.reload();
       }
       window.restartGame = restartGame;
-
+      
       function launchConfetti() {
         const container = document.getElementById("confetti-container");
         container.innerHTML = "";
@@ -685,15 +686,14 @@
         }
       `;
       document.head.appendChild(confettiStyle);
-
-      /***** INITIALIZE STOCKS & LIVE GAMES *****/
+      
+      /***** INITIALIZATION *****/
       updateStocksTable();
       updateDashboard();
       generateLiveGames();
       updateLiveGamesDisplay();
-      // Update stock prices every 3 seconds
       setInterval(updateStockPrices, 3000);
-
+      
       /***** EXPOSE FUNCTIONS TO GLOBAL SCOPE *****/
       window.buyStock = buyStock;
       window.sellStock = sellStock;
